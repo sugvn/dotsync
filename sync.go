@@ -2,9 +2,10 @@ package main
 
 import (
 	"bufio"
-	// "fmt"
+	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 
@@ -18,17 +19,28 @@ func main() {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	var directories []string
+	var paths []string
 	for scanner.Scan() {
-		directories=append(directories,scanner.Text())
+		paths=append(paths,scanner.Text())
 	}
 	
 	// check if each directory exists
-	for _,directory := range directories {
-		_,err := os.Stat(directory)
+	for _,path := range paths {
+		_,err := os.Stat(path)
 		if err!=nil {
 			log.Fatal(err)
 		}
 	}
+
+	var basenames []string
+	for _,path := range paths {
+		basename := filepath.Base(path)
+		basenames = append(basenames,basename)	
+	}
+
+	for _,basename := range basenames {
+		fmt.Println(basename)
+	}
+
 
 }
