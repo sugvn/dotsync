@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"fmt"
+	// "fmt"
 	"log"
 	"os"
 )
@@ -22,7 +22,13 @@ func main() {
 	for scanner.Scan() {
 		directories=append(directories,scanner.Text())
 	}
+	
+	// check if each directory exists
 	for _,directory := range directories {
-		fmt.Println(directory)
+		_,err := os.Stat(directory)
+		if err!=nil {
+			log.Fatal(err)
+		}
 	}
+
 }
