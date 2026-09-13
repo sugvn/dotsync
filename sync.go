@@ -6,41 +6,46 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
+func handle(err error){
+	if err!=nil {
+		log.Fatal(err)
+	}
+}
 
 func main() {
 	filename:="dirlist.txt"
 	file,err := os.Open(filename)
-	if err!=nil {
-		// fmt.Errorf("failed to read %s : %w",filename,err)
-		log.Fatal(err)
-	}
+	handle(err)
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	var paths []string
+	dir_map:=make(map[string]string)
+	count_map:=make(map[string]int)
 	for scanner.Scan() {
-		paths=append(paths,scanner.Text())
-	}
-	
-	// check if each directory exists
-	for _,path := range paths {
+		path:=scanner.Text()
+
+		// existence check
 		_,err := os.Stat(path)
-		if err!=nil {
-			log.Fatal(err)
+		handle(err)
+
+		basename := filepath.Base(path)
+
+		if dir_map[basename]!="" {
+			new_basename := basename + "_" + strconv.Itoa(count_map[basename])
+			count_map[basename]+=1
+			
+			dir_map[new_basename]=path
+		} else {
+			dir_map[basename]=path
+			count_map[basename]=1
 		}
 	}
-
-	var basenames []string
-	for _,path := range paths {
-		basename := filepath.Base(path)
-		basenames = append(basenames,basename)	
+	
+	for basename,path := range dir_map {
+		fmt.Println(basename," : ",path)
 	}
-
-	for _,basename := range basenames {
-		fmt.Println(basename)
-	}
-
 
 }

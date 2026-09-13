@@ -3,3 +3,5 @@
 /home/sugan/.config/kitty
 /home/sugan/.config/sway
 /home/sugan/.config/fish
+/home/sugan/dotfiles/fish
+/home/sugan/dotfiles/sway
