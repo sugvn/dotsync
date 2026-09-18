@@ -1,4 +1,4 @@
-package main
+package dotsync
 
 import (
 	"bufio"
@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func handle(err error){
+func Handle(err error){
 	if err!=nil {
 		log.Fatal(err)
 	}
@@ -18,7 +18,7 @@ func handle(err error){
 func BuildDirMap(filename string) (map[string]string,error) {
 
 	file,err := os.Open(filename)
-	handle(err)
+	Handle(err)
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
@@ -29,7 +29,7 @@ func BuildDirMap(filename string) (map[string]string,error) {
 
 		// existence check
 		_,err := os.Stat(path)
-		handle(err)
+		Handle(err)
 
 		basename := filepath.Base(path)
 		if dir_map[basename]!="" {
@@ -46,15 +46,8 @@ func BuildDirMap(filename string) (map[string]string,error) {
 	return dir_map,nil
 }
 
-func printDirMap(dir_map map[string]string){
+func PrintDirMap(dir_map map[string]string){
 	for basename,path := range dir_map {
 		fmt.Println(basename," : ",path)
 	}
-}
-
-func main() {
-	filename:="dirlist.txt"
-	dir_map,err := BuildDirMap(filename)
-	handle(err)
-	printDirMap(dir_map)
 }
