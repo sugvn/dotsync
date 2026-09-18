@@ -15,8 +15,8 @@ func handle(err error){
 	}
 }
 
-func main() {
-	filename:="dirlist.txt"
+func BuildDirMap(filename string) (map[string]string,error) {
+
 	file,err := os.Open(filename)
 	handle(err)
 	defer file.Close()
@@ -32,7 +32,6 @@ func main() {
 		handle(err)
 
 		basename := filepath.Base(path)
-
 		if dir_map[basename]!="" {
 			new_basename := basename + "_" + strconv.Itoa(count_map[basename])
 			count_map[basename]+=1
@@ -44,8 +43,18 @@ func main() {
 		}
 	}
 	
+	return dir_map,nil
+}
+
+func printDirMap(dir_map map[string]string){
 	for basename,path := range dir_map {
 		fmt.Println(basename," : ",path)
 	}
+}
 
+func main() {
+	filename:="dirlist.txt"
+	dir_map,err := BuildDirMap(filename)
+	handle(err)
+	printDirMap(dir_map)
 }
