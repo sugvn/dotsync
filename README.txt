@@ -14,7 +14,15 @@ How it works:
         /home/user/.config/kitty
 
         Then you pull the entries from the dirlist.txt into the current directory
-        ~/dotfiles> dotsync pull
+        ~/dotfiles> sudo dotsync pull
+
+important note:
+        all the files in the dotfiles directory should be write protected,so you wont modify the
+        files by accident and only modify and pull from the original directory entries.
+        so dotsync pull need root priviliges to modify.
+
+        This ensures that you dont modify both the file in the dotfiles directory as well as the
+        original directory entried files and cause merge conflicts
 
 list of commands:
 
