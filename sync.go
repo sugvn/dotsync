@@ -46,8 +46,18 @@ func BuildDirMap(filename string) (map[string]string,error) {
 	return dir_map,nil
 }
 
-func PrintDirMap(dir_map map[string]string){
+func printDirMap(dir_map map[string]string){
 	for basename,path := range dir_map {
 		fmt.Println(basename," : ",path)
 	}
+}
+
+func PullChanges(dir_map map[string]string) error {
+	// for key,val in dir_map: copy file(val) to file(key)	
+	return nil
+}
+
+func PushChanges(dir_map map[string]string) error {
+	//for key,val in dir_map: copy file(key) to file(val)
+	return nil
 }
