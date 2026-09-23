@@ -63,11 +63,14 @@ func cleanUp(path string) error{
 }
 
 func revertFromTmp(path string,dir_map map[string]string) error {
-	for basename := range dir_map {		tmpdir_basename:= path + "/" + basename
-		err:= os.Rename(tmpdir_basename,basename)
-		if err!=nil {
-			fmt.Println("Failed to move ",tmpdir_basename," to ",basename)
-			return err
+	for basename := range dir_map {		
+		tmpdirBasename := filepath.Join(path,basename)
+		renameErr := os.Rename(tmpdirBasename,basename)
+		if renameErr != nil {
+			if os.IsNotExist(renameErr) {
+				continue
+			}
+			return renameErr
 		}
 	}
 	return nil
@@ -75,55 +78,63 @@ func revertFromTmp(path string,dir_map map[string]string) error {
 
 // create a tmp directory in the current directory
 // for each item in the map,copy all files in the dotfiles/ into tmp directory
-// continue if succeeds,else abort
 // mv the files from the original location into the dotfiles directory
-// continue if succeeds,else copy the files from tmp into dotfiles
 // delete tmp
 func PullChanges(dir_map map[string]string) error {
 
-	// for key,val in dir_map: copy file(val) to file(key)	
-	tmpdir,err := os.MkdirTemp("./","dotsync-tmp")
-	if err!=nil {
-		return fmt.Errorf("Failed to create tmp directory: %w",err)
+	// create a temporary directory
+	tmpdir,mkdirErr := os.MkdirTemp("./","dotsync-tmp-*")
+	if mkdirErr != nil {
+		return fmt.Errorf("create tmp dir failed: %w",mkdirErr)
 	}
 	fmt.Println("Temp Directory Name:",tmpdir)
 
 	// mv all files into tmp
 	for basename := range dir_map {		
-		tmpdir_basename := tmpdir + "/" + basename
-		err := os.Rename(basename,tmpdir_basename)
-		if err!=nil {
-			if os.IsNotExist(err){
-				fmt.Println("failed to move ",basename," into ",tmpdir_basename,": ",err.Error())
-			} else {
-				err1:= revertFromTmp(tmpdir,dir_map)
-				if err1!=nil {
-					fmt.Println("reverting from tmp failed: ",err1.Error())
-				} else {
-					fmt.Println("Cleaning up tmp")
-					cleanUp(tmpdir)
-				}
-				return err
-			}
+		tmpdirBasename := filepath.Join(tmpdir,basename)
+		renameErr := os.Rename(basename,tmpdirBasename)
+		if renameErr == nil {
+			continue
 		}
+		if os.IsNotExist(renameErr) {
+			continue
+		}
+
+		revertErr := revertFromTmp(tmpdir,dir_map)
+		if revertErr != nil {
+			return fmt.Errorf("move failed:%w; revert failed:%v",renameErr,revertErr)
+		}
+		cleanErr := cleanUp(tmpdir)
+		if cleanErr != nil {
+			return fmt.Errorf("move failed:%w; cleanUp failed:%v",renameErr,cleanErr)
+		}
+		return fmt.Errorf("move failed:%w",renameErr)
 	}
 
 	// copy all files from original path to root of dotfiles/
 	for basename,path := range dir_map {
-		err:= cp.Copy(path,basename)	
-		if err!=nil {
-			fmt.Printf("Failed to copy %s to %s: %s",path,basename,err.Error())
-			err1:= revertFromTmp(tmpdir,dir_map)
-			if err1!=nil {
-				fmt.Println("reverting from tmp failed: ",err1.Error())
-			} else {
-				fmt.Println("Cleaning up tmp")
-				cleanUp(tmpdir)
+		copyErr := cp.Copy(path,basename)	
+		if copyErr != nil {
+
+			revertErr := revertFromTmp(tmpdir,dir_map)
+			if revertErr != nil {
+				return fmt.Errorf("copying failed:%w; reverting failed:%v",copyErr,revertErr)
 			}
-			return err
+
+			cleanErr := cleanUp(tmpdir)
+			if cleanErr != nil {
+				return fmt.Errorf("copying failed:%w; cleanUp failed:%v",copyErr,cleanErr)
+			}
+
+			return fmt.Errorf("copying failed:%w",copyErr)
 		}
 	}
-	cleanUp(tmpdir)
+
+	// clean up
+	cleanErr := cleanUp(tmpdir)
+	if cleanErr != nil {
+		return fmt.Errorf("cleanUp failed:%w",cleanErr)
+	}
 	return nil
 }
 
