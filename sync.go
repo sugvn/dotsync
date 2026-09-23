@@ -93,7 +93,18 @@ func PullChanges(dir_map map[string]string) error {
 		tmpdir_basename := tmpdir + "/" + basename
 		err := os.Rename(basename,tmpdir_basename)
 		if err!=nil {
-			fmt.Printf("failed to move %s into tmp: %s \n",basename,err.Error())
+			if os.IsNotExist(err){
+				fmt.Println("failed to move ",basename," into ",tmpdir_basename,": ",err.Error())
+			} else {
+				err1:= revertFromTmp(tmpdir,dir_map)
+				if err1!=nil {
+					fmt.Println("reverting from tmp failed: ",err1.Error())
+				} else {
+					fmt.Println("Cleaning up tmp")
+					cleanUp(tmpdir)
+				}
+				return err
+			}
 		}
 	}
 
