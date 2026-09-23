@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	dotsync "github.com/sugvn/dotsync/core"
 )
 
