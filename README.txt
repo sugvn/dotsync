@@ -1,4 +1,4 @@
-DOTSYNC - A simple dotfiles manager
+DOTSYNC - A simple dotfiles management helper
 
 How it works:
         you create a directory in the home directory like,

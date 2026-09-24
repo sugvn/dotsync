@@ -10,17 +10,13 @@ func main() {
 	filename := flag.String("file","dirlist.txt","specify the file that lists the directories to track")
 	action := flag.String("action","none","specify whether to pull or push")
 	flag.Parse()
-	dir_map,err := dotsync.BuildDirMap(*filename)
-	if err != nil {
-		fmt.Println("Error building directory map:",err.Error())
-		return
-	}
+	dir_map := dotsync.BuildDirMap(*filename)
 	if *action=="none" {
 		fmt.Println("No operation provided")
 		return
 	}
 	if *action=="pull" {
-		err = dotsync.PullChanges(dir_map)
+		err := dotsync.PullChanges(dir_map)
 		if err != nil {
 			fmt.Println("Error Pulling Changes:")
 			fmt.Println(err.Error())

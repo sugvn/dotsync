@@ -10,16 +10,16 @@ import (
 	cp "github.com/otiai10/copy"
 )
 
-func Handle(err error){
+func FatalOnErr(err error){
 	if err!=nil {
 		log.Fatal(err)
 	}
 }
 
-func BuildDirMap(filename string) (map[string]string,error) {
+func BuildDirMap(filename string) map[string]string {
 
 	file,err := os.Open(filename)
-	Handle(err)
+	FatalOnErr(err)
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
@@ -30,7 +30,7 @@ func BuildDirMap(filename string) (map[string]string,error) {
 
 		// existence check
 		_,err := os.Stat(path)
-		Handle(err)
+		FatalOnErr(err)
 
 		basename := filepath.Base(path)
 		if dir_map[basename]!="" {
@@ -44,7 +44,7 @@ func BuildDirMap(filename string) (map[string]string,error) {
 		}
 	}
 	
-	return dir_map,nil
+	return dir_map
 }
 
 func printDirMap(dir_map map[string]string){
