@@ -18,7 +18,8 @@ func main() {
 		err := dotsync.PullChanges(dir_map)
 		dotsync.FatalOnErr(err)
 	case "push":
-		fmt.Println("Unimplemented")
+		err := dotsync.PushChanges(dir_map)
+		dotsync.FatalOnErr(err)
 	default:
 		fmt.Println("Invalid action")
 	}

@@ -10,6 +10,19 @@ import (
 	cp "github.com/otiai10/copy"
 )
 
+func isAllExist(paths []string) (bool,error) {
+	for _,path := range paths {
+		_,err := os.Stat(path)
+		if err != nil {
+			if os.IsExist(err) {
+				return false,nil
+			}
+			return false,err
+		}
+	}
+	return true,nil
+}
+
 func FatalOnErr(err error){
 	if err!=nil {
 		log.Fatal(err)
@@ -27,10 +40,6 @@ func BuildDirMap(filename string) map[string]string {
 	count_map:=make(map[string]int)
 	for scanner.Scan() {
 		path:=scanner.Text()
-
-		// existence check
-		_,err := os.Stat(path)
-		FatalOnErr(err)
 
 		basename := filepath.Base(path)
 		if dir_map[basename]!="" {
@@ -82,6 +91,18 @@ func revertFromTmp(path string,dir_map map[string]string) error {
 // delete tmp
 func PullChanges(dir_map map[string]string) error {
 
+	var paths []string
+	for _,path := range dir_map {
+		paths = append(paths,path)
+	}
+	isExist,existErr := isAllExist(paths)
+	if existErr != nil {
+		return existErr
+	}
+	if isExist == false {
+		fmt.Println("One of the paths mentioned does not exist")
+		return nil
+	}
 	// create a temporary directory
 	tmpdir,mkdirErr := os.MkdirTemp("./","dotsync-tmp-*")
 	if mkdirErr != nil {
@@ -97,6 +118,7 @@ func PullChanges(dir_map map[string]string) error {
 			continue
 		}
 		if os.IsNotExist(renameErr) {
+			fmt.Println("rename ",basename," into ",tmpdirBasename,": ",basename," does not exist")
 			continue
 		}
 
@@ -138,7 +160,42 @@ func PullChanges(dir_map map[string]string) error {
 	return nil
 }
 
+// for simplicity and clean transition of states,
+// we can only push if there are basename directories of all entries specified in the list provided
+// by the file
+// i.e every entry in the file list must already be pulled before
+// dont push partial list of entries
 func PushChanges(dir_map map[string]string) error {
-	//for key,val in dir_map: copy file(key) to file(val)
+
+	// existence check
+
+	var basenames []string
+	for basename := range dir_map {
+		basenames = append(basenames,basename)
+	}
+	isExist,existErr := isAllExist(basenames)
+	if existErr != nil {
+		return existErr
+	}
+	if isExist == false {
+		fmt.Println("One of the paths mentioned does not exist")
+		return nil
+	}
+
+	for basename,path := range dir_map {
+		cleanupErr := cleanUp(path)
+		if cleanupErr != nil {
+			fmt.Println("Push:cleanUp: ",cleanupErr.Error())
+			return cleanupErr
+		}
+		copyErr := cp.Copy(basename,path)
+		if copyErr != nil {
+			fmt.Println("copying ",basename," to ",path,": ",copyErr.Error())
+			return copyErr
+		}
+		fmt.Println("copied ",basename,"to ",path)
+	}
+	
+
 	return nil
 }
