@@ -8,23 +8,18 @@ import (
 
 func main() {
 	filename := flag.String("file","dirlist.txt","specify the file that lists the directories to track")
-	action := flag.String("action","none","specify whether to pull or push")
+	action := flag.String("action","none","specify whether to pull/push")
 	flag.Parse()
 	dir_map := dotsync.BuildDirMap(*filename)
-	if *action=="none" {
+	switch *action {
+	case "none":
 		fmt.Println("No operation provided")
-		return
-	}
-	if *action=="pull" {
+	case "pull":
 		err := dotsync.PullChanges(dir_map)
-		if err != nil {
-			fmt.Println("Error Pulling Changes:")
-			fmt.Println(err.Error())
-			return
-		}
-	} else if *action=="push" {
+		dotsync.FatalOnErr(err)
+	case "push":
 		fmt.Println("Unimplemented")
-	} else {
-		fmt.Println("no action named ",*action)
+	default:
+		fmt.Println("Invalid action")
 	}
 }
