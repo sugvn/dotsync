@@ -65,7 +65,7 @@ func printDirMap(dir_map map[string]string){
 func cleanUp(path string) error{
 	err:= os.RemoveAll(path)
 	if err!=nil {
-		fmt.Printf("cleanUp: Failed to remove directory: %s",path)
+		fmt.Printf("cleanUp: Failed to remove directory: %s\n",path)
 		return err
 	}
 	return nil
@@ -84,6 +84,42 @@ func revertFromTmp(path string,dir_map map[string]string) error {
 	}
 	return nil
 }
+
+// check write permission
+func canWrite(path string) (bool,error) {
+	info,err := os.Stat(path) 
+	if err != nil {
+		return false,err
+	}
+
+	// if directory
+	if info.IsDir() {
+		tmpDir,mkdirErr := os.MkdirTemp(path,"dotsync-tmp-*")
+		if mkdirErr != nil {
+			if os.IsPermission(mkdirErr) {
+				return false,nil
+			}
+			return false,mkdirErr
+		}
+		cleanupErr := cleanUp(tmpDir)
+		if cleanupErr != nil {
+			return true,fmt.Errorf("Error cleaning up %s: %w",tmpDir,cleanupErr)
+		}
+		return true,nil
+	}
+	
+	// if file
+	file,openErr := os.OpenFile(path,os.O_WRONLY,0)
+	if openErr != nil {
+		if os.IsPermission(openErr) {
+			return false,nil
+		}
+		return false,openErr
+	}
+	file.Close()
+	return true,nil
+}
+
 
 // create a tmp directory in the current directory
 // for each item in the map,copy all files in the dotfiles/ into tmp directory
@@ -168,7 +204,6 @@ func PullChanges(dir_map map[string]string) error {
 func PushChanges(dir_map map[string]string) error {
 
 	// existence check
-
 	var basenames []string
 	for basename := range dir_map {
 		basenames = append(basenames,basename)
@@ -183,19 +218,34 @@ func PushChanges(dir_map map[string]string) error {
 	}
 
 	for basename,path := range dir_map {
+
+		// check if writable,if true continue else skip 
+		canWrite,writeErr := canWrite(path)
+		fmt.Println("Can write to ",path,": ",canWrite)
+		if !canWrite {
+			if writeErr != nil {
+				fmt.Printf("PushChanges: Error checking write permission for %s (skipping): %s\n",path,writeErr.Error())
+			} else {
+				fmt.Println("Not enough permission to write to ",path,": skipping")
+			}
+			continue
+		}
+
+		// remove <path>
 		cleanupErr := cleanUp(path)
 		if cleanupErr != nil {
-			fmt.Println("Push:cleanUp: ",cleanupErr.Error())
+			fmt.Printf("PushChanges: Error removing %s: %s ",path,cleanupErr.Error())
 			return cleanupErr
 		}
+
+		// copy <basename> to <path>
 		copyErr := cp.Copy(basename,path)
 		if copyErr != nil {
-			fmt.Println("copying ",basename," to ",path,": ",copyErr.Error())
+			fmt.Println("failed copying ",basename," to ",path,": ",copyErr.Error())
 			return copyErr
 		}
 		fmt.Println("copied ",basename,"to ",path)
 	}
 	
-
 	return nil
 }

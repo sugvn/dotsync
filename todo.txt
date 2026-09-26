@@ -3,4 +3,6 @@ PushChanges:
         if pushing failed,restore their original state using tmp backup directory
 
 PullChanges/PushChanges:
-         Hande special file permissions like write protected on both src and destination
+        need to implement checking write protection for pushing
+
+
