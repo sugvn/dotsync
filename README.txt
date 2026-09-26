@@ -26,6 +26,8 @@ push:
         in the dirlist.txt
         > dotsync -action push
 
+        Note: run push only the first time when setting up the dotfiles on a new machine
+
 additional flags:
 -file:
      specify the file to use as directory listing   
