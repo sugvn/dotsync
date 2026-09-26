@@ -1,7 +1,0 @@
-/home/sugan/.config/rofi
-/home/sugan/.config/i3status
-/home/sugan/.config/kitty
-/home/sugan/.config/sway
-/home/sugan/.config/fish
-/home/sugan/dotfiles/fish
-/home/sugan/dotfiles/sway
