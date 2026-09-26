@@ -14,33 +14,26 @@ How it works:
         /home/user/.config/kitty
 
         Then you pull the entries from the dirlist.txt into the current directory
-        ~/dotfiles> sudo dotsync pull
+        ~/dotfiles>dotsync -action pull
 
-important note:
-        all the files in the dotfiles directory should be write protected,so you wont modify the
-        files by accident and only modify and pull from the original directory entries.
-        so dotsync pull need root priviliges to modify.
-
-        This ensures that you dont modify both the file in the dotfiles directory as well as the
-        original directory entried files and cause merge conflicts
-
-list of commands:
-
-pull <basename>:
-        copy changes from the destination directory to the current directory
-        eg: cp -r ~/.config/sway ./sway
-
-        By default copy every destination directory entry from the dirlist.txt to the basename
+list of actions:
+pull:
+        copy every destination directory entry from the dirlist.txt to the basename
         directories in the current directory
-        > dotsync pull
 
-push <basename>:
-        copy changes of the current directory to the destination directory
-        eg: cp -r ./sway ~/.config/sway
-
-        By default copy every basename entry to its respective destination directory specified
+push:
+        copy every basename entry to its respective destination directory specified
         in the dirlist.txt
-        > dotsync push
+        > dotsync -action push
 
-commit <msg>:
-        commit the changes to git
+additional flags:
+-file:
+     specify the file to use as directory listing   
+     Default is dirlist.txt
+     usage:
+        > dotsync -file <filename> -action <action>
+
+installation instructions:
+        1. clone the repository
+        2. go build -o dotsync main.go
+        3. mv dotsync ~/.local/bin/
